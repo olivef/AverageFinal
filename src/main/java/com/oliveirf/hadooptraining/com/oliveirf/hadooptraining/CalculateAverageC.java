@@ -1,7 +1,6 @@
 package com.oliveirf.hadooptraining.com.oliveirf.hadooptraining;
 
 import java.io.IOException;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
@@ -18,7 +17,6 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.io.Writable;
 
-
 public class CalculateAverageC {
 
     public static class WikiMapper extends Mapper<LongWritable, Text, Text, OutTuple> {
@@ -27,19 +25,19 @@ public class CalculateAverageC {
         private double total_bytes;
         private double num_items;
         private double sum;
-	private OutTuple outTuple = new OutTuple();
-        
-	@Override
+        private OutTuple outTuple = new OutTuple();
+
+        @Override
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-	    String[] valor = value.toString().split(" ");
+            String[] valor = value.toString().split(" ");
             page.set(valor[1]);
             views = Long.valueOf(valor[2]).longValue();
             total_bytes = Long.valueOf(valor[3]).longValue();
             sum = total_bytes / views;
             num_items = 1;
-	    outTuple.setSum(sum);
-	    outTuple.setTotal(1);
-	    context.write(new Text("Average"), outTuple); 
+            outTuple.setSum(sum);
+            outTuple.setTotal(1);
+            context.write(new Text("Average"), outTuple);
         }
     }
 
@@ -49,13 +47,13 @@ public class CalculateAverageC {
                 InterruptedException {
             double sum = 0;
             double total = 0;
-	    double num_items =0;
+            double num_items = 0;
             for (OutTuple val : values) {
-                sum+= val.getSum();
+                sum += val.getSum();
                 total += val.getTotal();
-		num_items+=1;
+                num_items += 1;
             }
-	    DoubleWritable outValue = new DoubleWritable(sum / num_items);
+            DoubleWritable outValue = new DoubleWritable(sum / num_items);
             context.write(new Text("1"), outValue);
         }
     }
@@ -89,47 +87,39 @@ public class CalculateAverageC {
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 
-public static class OutTuple implements Writable {
-		private double sum;
-		private double total;
+    public static class OutTuple implements Writable {
+        private double sum;
+        private double total;
 
-		public double getSum() {
-			return sum;
-		}
+        public double getSum() {
+            return sum;
+        }
 
-		public void setSum(double s) {
-			this.sum = s;
-		}
+        public void setSum(double s) {
+            this.sum = s;
+        }
 
-		public double getTotal() {
-			return total;
-		}
+        public double getTotal() {
+            return total;
+        }
 
-		public void setTotal(double t) {
-			this.total = t;
-		}
+        public void setTotal(double t) {
+            this.total = t;
+        }
 
+        @Override
+        public void readFields(DataInput in) throws IOException {
+            sum = in.readDouble();
+            total = in.readDouble();
+        }
 
-		@Override
-		public void readFields(DataInput in) throws IOException {
-			sum = in.readDouble();
-			total = in.readDouble();
-		}
+        @Override
+        public void write(DataOutput out) throws IOException {
+            out.writeDouble(sum);
+            out.writeDouble(total);
+        }
 
-		@Override
-		public void write(DataOutput out) throws IOException {
-			out.writeDouble(sum);
-			out.writeDouble(total);
-		}
-
-	}
-
-
-
-
-
-
-
-
+    }
 
 }
+
